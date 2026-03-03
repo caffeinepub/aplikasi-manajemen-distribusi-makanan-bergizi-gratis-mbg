@@ -1,0 +1,37 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Checklist-based Beneficiary Selection per Village in Distribution Recording",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Replace free-text beneficiary input with searchable village-grouped checklist selector in distribution recording form",
+      "acceptanceCriteria": [
+        "The distribution form displays a searchable input that filters the beneficiary checklist by name or village as the user types.",
+        "Beneficiaries are grouped under their respective village (desa) headers in the checklist.",
+        "Each village group can be expanded or collapsed to show/hide its beneficiaries.",
+        "The user can check one or more beneficiaries across multiple villages before submitting.",
+        "The selected beneficiaries are visually highlighted/summarized before form submission.",
+        "Only active/eligible Sasaran records are shown in the checklist.",
+        "The checklist data is fetched from the existing backend Sasaran store, not manually entered."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BeneficiaryChecklistSelector.tsx",
+          "operation": "create",
+          "description": "Create a reusable beneficiary checklist selector component that fetches active sasaran records via useGetSemuaSasaran hook with status filtering. Group beneficiaries by their alamat (village/desa) field, providing expand/collapse functionality per village group. Include a search input that filters beneficiaries by name or alamat in real-time. Display checked beneficiaries as a summary list above the checklist. Expose selectedSasaranIds as an array via onChange callback for parent form integration. Use shadcn/ui components (Checkbox, Input, Collapsible, ScrollArea) for consistent styling."
+        },
+        {
+          "path": "frontend/src/components/DistribusiPage.tsx",
+          "operation": "modify",
+          "description": "Replace the existing free-text sasaran name input field with the new BeneficiaryChecklistSelector component. Update form state to manage an array of selected sasaran IDs instead of a single ID. When the form is submitted with multiple selected beneficiaries, call the new useCatatDistribusiBatched mutation hook (passing the PendingBatchedDistribusi payload with sasaranIds array). Display success/failure results from the BatchedDistribusiResult response, showing which distributions succeeded and which failed with error messages. Maintain backward compatibility by allowing single-beneficiary selection. Update form validation to require at least one selected beneficiary."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a new useCatatDistribusiBatched mutation hook that calls actor.catatDistribusiBatched with a PendingBatchedDistribusi payload. The hook should invalidate the 'distribusi' query key on success to refresh the distribution list. Handle the BatchedDistribusiResult response type which contains separate arrays for successful (sukses) and failed (gagal) distribution records. Export the mutation hook for use in DistribusiPage."
+        }
+      ]
+    }
+  ]
+}

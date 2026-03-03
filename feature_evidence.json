@@ -1,0 +1,27 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-in-the-catat-distribusi-record-distribution-page-replace-the-free-text-beneficiary-name-input-with-a-searchable-checklist-selector-that-pulls-data-from-the-existing-sasaran-beneficiary-records-the-checklist-must-group-beneficiaries-by-village-desa-allowing-the-inputter-to-expand-each-village-group-and-check-uncheck-individual-beneficiaries-multiple-beneficiaries-can-be-selected-at-once-before-submitting-the-distribution-record",
+      "featureTitle": "In the 'Catat Distribusi' (Record Distribution) page, replace the free-text beneficiary name input with a searchable checklist selector that pulls data from the existing Sasaran (beneficiary) records. The checklist must group beneficiaries by village (desa), allowing the inputter to expand each village group and check/uncheck individual beneficiaries. Multiple beneficiaries can be selected at once before submitting the distribution record.",
+      "files": [
+        "frontend/src/components/BeneficiaryChecklistSelector.tsx",
+        "frontend/src/components/DistribusiPage.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "blob-storage@4.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

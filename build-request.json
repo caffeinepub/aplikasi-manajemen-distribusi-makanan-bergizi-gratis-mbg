@@ -1,0 +1,64 @@
+{
+  "kind": "build_request",
+  "title": "Checklist-based Beneficiary Selection per Village in Distribution Recording",
+  "projectName": "MBG Distribution",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "In the 'Catat Distribusi' (Record Distribution) page, replace the free-text beneficiary name input with a searchable checklist selector that pulls data from the existing Sasaran (beneficiary) records. The checklist must group beneficiaries by village (desa), allowing the inputter to expand each village group and check/uncheck individual beneficiaries. Multiple beneficiaries can be selected at once before submitting the distribution record.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "pada menu catat distribusi nama penerima mamfaat pengimput dapat mengetik sasaran yang diambil dari data sasaran dengan sistem ceklis , pada masing masing desa"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The distribution form displays a searchable input that filters the beneficiary checklist by name or village as the user types.",
+        "Beneficiaries are grouped under their respective village (desa) headers in the checklist.",
+        "Each village group can be expanded or collapsed to show/hide its beneficiaries.",
+        "The user can check one or more beneficiaries across multiple villages before submitting.",
+        "The selected beneficiaries are visually highlighted/summarized before form submission.",
+        "Only active/eligible Sasaran records are shown in the checklist.",
+        "The checklist data is fetched from the existing backend Sasaran store, not manually entered."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Update the backend distribution recording logic to accept a list of selected beneficiary IDs (one per distribution entry or as a batch), so that when multiple beneficiaries are checked in the form, each receives their own distribution record linked to the selected package and date.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "nama penerima mamfaat pengimput dapat mengetik sasaran yang diambil dari data sasaran dengan sistem ceklis"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend accepts a batch of sasaran IDs for a single distribution submission.",
+        "Each selected sasaran ID generates an individual distribution record with the same package, date, and status.",
+        "Existing single-beneficiary distribution creation remains backward compatible.",
+        "The distribution list/table correctly displays all batch-created entries."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Beneficiary data must be sourced exclusively from existing Sasaran records in the backend — no manual free-text entry for beneficiary names.",
+    "Village grouping must use the existing desa field already present in Sasaran records."
+  ],
+  "nonGoals": [
+    "Adding or editing village (desa) records from within the distribution form.",
+    "Changing the overall layout or navigation of the Dashboard.",
+    "Modifying the Sasaran management page itself.",
+    "Real-time collaborative editing of distribution records."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

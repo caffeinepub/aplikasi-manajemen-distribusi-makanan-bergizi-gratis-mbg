@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 3,
+  "summary": "Project involves a distribution recording application with beneficiary management features, including a checklist-based beneficiary selection system per village.",
+  "architectural_notes": [
+    "Beneficiary selection in distribution recording uses a checklist system sourced from existing target (sasaran) data, organized per village (desa)"
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-in-the-catat-distribusi-record-distribution-page-replace-the-free-text-beneficiary-name-input-with-a-searchable-checklist-selector-that-pulls-data-from-the-existing-sasaran-beneficiary-records-the-checklist-must-group-beneficiaries-by-village-desa-allowing-the-inputter-to-expand-each-village-group-and-check-uncheck-individual-beneficiaries-multiple-beneficiaries-can-be-selected-at-once-before-submitting-the-distribution-record",
+      "title": "In the 'Catat Distribusi' (Record Distribution) page, replace the free-text beneficiary name input with a searchable checklist selector that pulls data from the existing Sasaran (beneficiary) records. The checklist must group beneficiaries by village (desa), allowing the inputter to expand each village group and check/uncheck individual beneficiaries. Multiple beneficiaries can be selected at once before submitting the distribution record.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Pada menu 'Catat Distribusi', input nama penerima manfaat menggunakan sistem ceklis yang diambil dari data sasaran, dikelompokkan per desa",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Update the backend distribution recording logic to accept a list of selected beneficiary IDs (one per distribution entry or as a batch), so that when multiple beneficiaries are checked in the form, each receives their own distribution record linked to the selected package and date.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Aplikasi Catat Distribusi",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

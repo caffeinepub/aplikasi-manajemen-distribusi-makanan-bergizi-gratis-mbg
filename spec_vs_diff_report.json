@@ -1,0 +1,54 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-03-03T01:24:11.523Z",
+  "summary": "The diff implements both REQ-1 and REQ-2 with substantial coverage. REQ-1 is addressed via the new BeneficiaryChecklistSelector component and DistribusiPage updates. REQ-2 is addressed via backend batch distribution logic and the useCatatDistribusiBatched hook. However, there are some notable gaps: the grouping uses 'alamat' (address) field rather than a dedicated 'desa' field, and backward compatibility of single-beneficiary creation needs verification from truncated backend code.",
+  "missing_requirements": [
+    {
+      "id": "REQ-1",
+      "requirement": "Village grouping must use the existing 'desa' field already present in Sasaran records.",
+      "reason": "The BeneficiaryChecklistSelector groups by 'alamat' (address) field, not a dedicated 'desa' field. The constraint explicitly states village grouping must use the existing desa field. The SasaranRecord type shown in both backend/main.mo and backend/migration.mo has no separate 'desa' field, only 'alamat', suggesting the grouping implementation may not align with the intended field.",
+      "evidence": [
+        "frontend/src/components/BeneficiaryChecklistSelector.tsx",
+        "backend/main.mo",
+        "backend/migration.mo"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "A Desa column was added to the distribution list table in DistribusiPage.",
+      "reason": "The build request does not mention adding a Desa column to the distribution table. REQ-2 only requires that batch-created entries are correctly displayed, not that a new column be added.",
+      "evidence": [
+        "frontend/src/components/DistribusiPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Per-village select-all checkbox functionality in BeneficiaryChecklistSelector.",
+      "reason": "The build request does not mention a select-all per village group feature. Requirements only specify expanding/collapsing groups and checking/unchecking individual beneficiaries.",
+      "evidence": [
+        "frontend/src/components/BeneficiaryChecklistSelector.tsx"
+      ]
+    },
+    {
+      "description": "Success/failure result alerts using BatchedDistribusiResult shown after batch submission.",
+      "reason": "The build request does not specify showing per-item success/failure result alerts after batch submission. This goes beyond what was specified in REQ-1 or REQ-2.",
+      "evidence": [
+        "frontend/src/components/DistribusiPage.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.72,
+  "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
+    "frontend-file-summaries.txt",
+    "frontend/src/components/BeneficiaryChecklistSelector.tsx",
+    "frontend/src/components/DistribusiPage.tsx",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "project_state.json"
+  ]
+}
