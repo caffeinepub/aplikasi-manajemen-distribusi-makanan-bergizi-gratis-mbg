@@ -1,14 +1,24 @@
-# Specification
+# Aplikasi Manajemen Distribusi Makanan Bergizi Gratis (MBG)
 
-## Summary
-**Goal:** Replace the free-text beneficiary name input in the "Catat Distribusi" (Record Distribution) form with a searchable, village-grouped checklist that pulls from existing Sasaran records, and update the backend to handle batch distribution record creation.
+## Current State
+Aplikasi sudah memiliki fitur catat distribusi batched dengan checklist penerima per desa. Tabel distribusi menampilkan data yang sudah dicatat. Belum ada fitur edit data distribusi yang sudah tersimpan.
 
-**Planned changes:**
-- Replace the free-text beneficiary name field in the distribution form with a searchable checklist input that filters by beneficiary name or village as the user types.
-- Group beneficiaries in the checklist under their respective village (desa) headers, with expand/collapse support per group.
-- Allow selection of multiple beneficiaries across villages before submitting; show a visual summary of selected beneficiaries.
-- Fetch checklist data from existing Sasaran records (active/eligible only) rather than accepting manual text input.
-- Update the backend distribution endpoint to accept a batch of sasaran IDs, creating one individual distribution record per selected beneficiary with the same package, date, and status.
-- Ensure existing single-beneficiary distribution creation remains backward compatible.
+## Requested Changes (Diff)
 
-**User-visible outcome:** Users recording a distribution can now search and check multiple beneficiaries organized by village from the existing Sasaran data, and submitting the form automatically creates a separate distribution record for each selected beneficiary.
+### Add
+- Fungsi backend `editDistribusi` untuk mengubah data distribusi yang sudah ada (tanggal, paket, jumlah, status, keterangan)
+- Tombol Edit di setiap baris tabel distribusi
+- Dialog edit distribusi dengan form pre-filled data yang ada
+- Hook `useEditDistribusi` untuk memanggil API edit
+
+### Modify
+- `DistribusiPage.tsx`: tambah kolom Aksi di tabel, tambah dialog edit
+- `main.mo`: tambah fungsi `editDistribusi`
+
+### Remove
+- Tidak ada yang dihapus
+
+## Implementation Plan
+1. Tambah fungsi `editDistribusi` di `main.mo` yang menerima id dan field-field yang dapat diubah
+2. Tambah hook `useEditDistribusi` di `useQueries.ts`
+3. Update `DistribusiPage.tsx` dengan tombol edit, state edit, dan dialog edit
