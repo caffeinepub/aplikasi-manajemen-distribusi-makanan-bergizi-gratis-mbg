@@ -33,8 +33,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Plus, Search, UserCheck, UserX } from "lucide-react";
+import {
+  FileDown,
+  Loader2,
+  Plus,
+  Search,
+  UserCheck,
+  UserX,
+} from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Kategori, Status } from "../backend";
 import {
   useGetSemuaSasaran,
@@ -49,6 +57,7 @@ export default function SasaranPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [formData, setFormData] = useState({
     nama: "",
     alamat: "",
@@ -124,6 +133,208 @@ export default function SasaranPage() {
     ubahStatus({ id, aktif: !isAktif });
   };
 
+  const downloadRekapanPDF = async () => {
+    if (sasaranList.length === 0) {
+      toast.error("Tidak ada data sasaran untuk diunduh.");
+      return;
+    }
+    setIsDownloading(true);
+    try {
+      const jsPDFModule = (window as any).jspdf;
+      if (!jsPDFModule || !jsPDFModule.jsPDF) {
+        toast.error("Library PDF tidak tersedia. Silakan refresh halaman.");
+        return;
+      }
+      const { jsPDF } = jsPDFModule;
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 14;
+      const contentWidth = pageWidth - margin * 2;
+      let yPos = 20;
+
+      // Header
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("REKAPAN DATA SASARAN PENERIMA MBG", pageWidth / 2, yPos, {
+        align: "center",
+      });
+      yPos += 7;
+      doc.setFontSize(11);
+      doc.text(
+        "UPTD DALDUK PKK - DP2KBP3A Kecamatan Cisalak",
+        pageWidth / 2,
+        yPos,
+        { align: "center" },
+      );
+      yPos += 6;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      const tglCetak = new Date().toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+      doc.text(`Dicetak: ${tglCetak}`, pageWidth / 2, yPos, {
+        align: "center",
+      });
+      yPos += 10;
+
+      // Divider
+      doc.setDrawColor(16, 185, 129);
+      doc.setLineWidth(0.5);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 8;
+
+      // Summary stats
+      const ibuHamilCount = sasaranList.filter(
+        (s) => s.kategori === Kategori.ibuHamil,
+      ).length;
+      const ibuMenyusuiCount = sasaranList.filter(
+        (s) => s.kategori === Kategori.ibuMenyusui,
+      ).length;
+      const balitaCount = sasaranList.filter(
+        (s) => s.kategori === Kategori.balita,
+      ).length;
+      const aktifCount = sasaranList.filter(
+        (s) => s.status === Status.aktif,
+      ).length;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("RINGKASAN DATA", margin, yPos);
+      yPos += 7;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      const summaryRows: [string, string][] = [
+        ["Total Sasaran Terdaftar", `${sasaranList.length} orang`],
+        ["Status Aktif", `${aktifCount} orang`],
+        ["Status Non-Aktif", `${sasaranList.length - aktifCount} orang`],
+        ["Ibu Hamil", `${ibuHamilCount} orang`],
+        ["Ibu Menyusui", `${ibuMenyusuiCount} orang`],
+        ["Balita", `${balitaCount} orang`],
+      ];
+      for (const [label, value] of summaryRows) {
+        doc.text(`- ${label}:`, margin + 2, yPos);
+        doc.text(value, margin + 60, yPos);
+        yPos += 5;
+      }
+      yPos += 8;
+
+      // Separator
+      doc.setDrawColor(200, 200, 200);
+      doc.setLineWidth(0.3);
+      doc.line(margin, yPos - 4, pageWidth - margin, yPos - 4);
+
+      // Table title
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text("DAFTAR LENGKAP SASARAN", margin, yPos);
+      yPos += 7;
+
+      const colWidths = {
+        no: 8,
+        nama: 42,
+        kategori: 24,
+        nik: 32,
+        alamat: 45,
+        status: 18,
+      };
+
+      const drawTableHeader = () => {
+        doc.setFillColor(16, 185, 129);
+        doc.rect(margin, yPos - 4, contentWidth, 7, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(8);
+        let x = margin + 1;
+        doc.text("No", x, yPos);
+        x += colWidths.no;
+        doc.text("Nama", x, yPos);
+        x += colWidths.nama;
+        doc.text("Kategori", x, yPos);
+        x += colWidths.kategori;
+        doc.text("NIK/No. Identitas", x, yPos);
+        x += colWidths.nik;
+        doc.text("Alamat", x, yPos);
+        x += colWidths.alamat;
+        doc.text("Status", x, yPos);
+        yPos += 7;
+        doc.setTextColor(0, 0, 0);
+        doc.setFont("helvetica", "normal");
+      };
+
+      drawTableHeader();
+
+      for (let i = 0; i < sasaranList.length; i++) {
+        const sasaran = sasaranList[i];
+        if (yPos > pageHeight - 25) {
+          doc.addPage();
+          yPos = 20;
+          drawTableHeader();
+        }
+        if (i % 2 === 0) {
+          doc.setFillColor(240, 253, 244);
+          doc.rect(margin, yPos - 4, contentWidth, 7, "F");
+        }
+        doc.setFontSize(8);
+        let x = margin + 1;
+        doc.text(`${i + 1}`, x, yPos);
+        x += colWidths.no;
+        const namaText =
+          sasaran.nama.length > 26
+            ? `${sasaran.nama.substring(0, 23)}...`
+            : sasaran.nama;
+        doc.text(namaText, x, yPos);
+        x += colWidths.nama;
+        doc.text(getKategoriLabel(sasaran.kategori), x, yPos);
+        x += colWidths.kategori;
+        doc.text(sasaran.nomorIdentitas, x, yPos);
+        x += colWidths.nik;
+        const alamatText =
+          sasaran.alamat.length > 28
+            ? `${sasaran.alamat.substring(0, 25)}...`
+            : sasaran.alamat;
+        doc.text(alamatText, x, yPos);
+        x += colWidths.alamat;
+        doc.text(
+          sasaran.status === Status.aktif ? "Aktif" : "Non-Aktif",
+          x,
+          yPos,
+        );
+        yPos += 7;
+      }
+
+      // Page footers
+      const pageCount = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(120, 120, 120);
+        doc.text(
+          `Halaman ${i} dari ${pageCount} | Rekapan Data Sasaran MBG Kecamatan Cisalak`,
+          pageWidth / 2,
+          pageHeight - 8,
+          { align: "center" },
+        );
+      }
+
+      const today = new Date();
+      const filename = `rekapan_sasaran_MBG_${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}.pdf`;
+      doc.save(filename);
+      toast.success(
+        `Rekapan PDF berhasil diunduh! (${sasaranList.length} data sasaran)`,
+      );
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Gagal menghasilkan rekapan. Silakan coba lagi.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -135,110 +346,135 @@ export default function SasaranPage() {
             Kelola data penerima manfaat B3
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Sasaran
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Tambah Sasaran Baru</DialogTitle>
-              <DialogDescription>
-                Masukkan data penerima manfaat baru
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="nama">Nama Lengkap *</Label>
-                <Input
-                  id="nama"
-                  value={formData.nama}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nama: e.target.value })
-                  }
-                  required
-                  disabled={isAdding}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="nomorIdentitas">
-                  Nomor Identitas (KTP/NIK) *
-                </Label>
-                <Input
-                  id="nomorIdentitas"
-                  value={formData.nomorIdentitas}
-                  onChange={(e) =>
-                    setFormData({ ...formData, nomorIdentitas: e.target.value })
-                  }
-                  required
-                  disabled={isAdding}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="kategori">Kategori Penerima *</Label>
-                <Select
-                  value={formData.kategori}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, kategori: value as Kategori })
-                  }
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={downloadRekapanPDF}
+            disabled={isDownloading || isLoading || sasaranList.length === 0}
+            className="border-emerald-600 text-emerald-700 hover:bg-emerald-50"
+          >
+            {isDownloading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Mengunduh...
+              </>
+            ) : (
+              <>
+                <FileDown className="mr-2 h-4 w-4" />
+                Download Rekapan
+              </>
+            )}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="mr-2 h-4 w-4" />
+                Tambah Sasaran
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Tambah Sasaran Baru</DialogTitle>
+                <DialogDescription>
+                  Masukkan data penerima manfaat baru
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="nama">Nama Lengkap *</Label>
+                  <Input
+                    id="nama"
+                    value={formData.nama}
+                    onChange={(e) =>
+                      setFormData({ ...formData, nama: e.target.value })
+                    }
+                    required
+                    disabled={isAdding}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="nomorIdentitas">
+                    Nomor Identitas (KTP/NIK) *
+                  </Label>
+                  <Input
+                    id="nomorIdentitas"
+                    value={formData.nomorIdentitas}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        nomorIdentitas: e.target.value,
+                      })
+                    }
+                    required
+                    disabled={isAdding}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="kategori">Kategori Penerima *</Label>
+                  <Select
+                    value={formData.kategori}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, kategori: value as Kategori })
+                    }
+                    disabled={isAdding}
+                  >
+                    <SelectTrigger id="kategori">
+                      <SelectValue placeholder="Pilih kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={Kategori.ibuHamil}>
+                        Ibu Hamil
+                      </SelectItem>
+                      <SelectItem value={Kategori.ibuMenyusui}>
+                        Ibu Menyusui
+                      </SelectItem>
+                      <SelectItem value={Kategori.balita}>Balita</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="alamat">Alamat Lengkap *</Label>
+                  <Textarea
+                    id="alamat"
+                    value={formData.alamat}
+                    onChange={(e) =>
+                      setFormData({ ...formData, alamat: e.target.value })
+                    }
+                    required
+                    disabled={isAdding}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="catatan">Catatan (Opsional)</Label>
+                  <Textarea
+                    id="catatan"
+                    value={formData.catatan}
+                    onChange={(e) =>
+                      setFormData({ ...formData, catatan: e.target.value })
+                    }
+                    disabled={isAdding}
+                    rows={2}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
                   disabled={isAdding}
                 >
-                  <SelectTrigger id="kategori">
-                    <SelectValue placeholder="Pilih kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={Kategori.ibuHamil}>Ibu Hamil</SelectItem>
-                    <SelectItem value={Kategori.ibuMenyusui}>
-                      Ibu Menyusui
-                    </SelectItem>
-                    <SelectItem value={Kategori.balita}>Balita</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="alamat">Alamat Lengkap *</Label>
-                <Textarea
-                  id="alamat"
-                  value={formData.alamat}
-                  onChange={(e) =>
-                    setFormData({ ...formData, alamat: e.target.value })
-                  }
-                  required
-                  disabled={isAdding}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="catatan">Catatan (Opsional)</Label>
-                <Textarea
-                  id="catatan"
-                  value={formData.catatan}
-                  onChange={(e) =>
-                    setFormData({ ...formData, catatan: e.target.value })
-                  }
-                  disabled={isAdding}
-                  rows={2}
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-emerald-600 hover:bg-emerald-700"
-                disabled={isAdding}
-              >
-                {isAdding ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Menyimpan...
-                  </>
-                ) : (
-                  "Simpan Data"
-                )}
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                  {isAdding ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Menyimpan...
+                    </>
+                  ) : (
+                    "Simpan Data"
+                  )}
+                </Button>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>

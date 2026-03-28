@@ -9,7 +9,6 @@ import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "next-themes";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import Dashboard from "./pages/Dashboard";
-import LoginPage from "./pages/LoginPage";
 
 // Create root route
 const rootRoute = createRootRoute({
@@ -17,9 +16,7 @@ const rootRoute = createRootRoute({
 });
 
 function RootComponent() {
-  const { identity, isInitializing } = useInternetIdentity();
-
-  const isAuthenticated = !!identity;
+  const { isInitializing } = useInternetIdentity();
 
   // Show loading state during initialization
   if (isInitializing) {
@@ -33,20 +30,9 @@ function RootComponent() {
     );
   }
 
-  // Show dashboard if authenticated
-  if (isAuthenticated) {
-    return <Dashboard />;
-  }
-
-  return <LoginPage />;
+  // Always show dashboard - no login required
+  return <Dashboard />;
 }
-
-// Create login route
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/login",
-  component: LoginPage,
-});
 
 // Create index route
 const indexRoute = createRoute({
@@ -56,7 +42,7 @@ const indexRoute = createRoute({
 });
 
 // Create router
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute]);
+const routeTree = rootRoute.addChildren([indexRoute]);
 const router = createRouter({ routeTree });
 
 export default function App() {

@@ -39,6 +39,8 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Calendar,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   Pencil,
   Plus,
@@ -329,6 +331,12 @@ export default function DistribusiPage() {
     useState<BatchedDistribusiResult | null>(null);
   const [editTarget, setEditTarget] = useState<DistribusiRecord | null>(null);
 
+  // Month filter state
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+  const [showAllMonths, setShowAllMonths] = useState(true);
+
   const [formData, setFormData] = useState({
     selectedSasaranIds: [] as bigint[],
     idPaket: "",
@@ -338,7 +346,19 @@ export default function DistribusiPage() {
     keterangan: "",
   });
 
-  const filteredDistribusi = distribusiList.filter((d) => {
+  // Step 1: filter by month
+  const monthFilteredDistribusi = showAllMonths
+    ? distribusiList
+    : distribusiList.filter((d) => {
+        const date = new Date(Number(d.tanggalDistribusi) / 1_000_000);
+        return (
+          date.getMonth() === selectedMonth &&
+          date.getFullYear() === selectedYear
+        );
+      });
+
+  // Step 2: filter by search term
+  const filteredDistribusi = monthFilteredDistribusi.filter((d) => {
     const sasaran = sasaranList.find((s) => s.id === d.idSasaran);
     const paket = paketList.find((p) => p.id === d.idPaket);
     return (
@@ -346,6 +366,50 @@ export default function DistribusiPage() {
       paket?.nama.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
+
+  // Stats for current filtered set (before search)
+  const totalDistribusi = monthFilteredDistribusi.length;
+  const uniquePenerima = new Set(
+    monthFilteredDistribusi.map((d) => d.idSasaran.toString()),
+  ).size;
+  const totalPaket = monthFilteredDistribusi.reduce(
+    (sum, d) => sum + Number(d.jumlahPaket),
+    0,
+  );
+
+  // Month navigation helpers
+  const selectedDate = new Date(selectedYear, selectedMonth, 1);
+  const monthLabel = selectedDate.toLocaleDateString("id-ID", {
+    month: "long",
+    year: "numeric",
+  });
+
+  const isCurrentMonth =
+    selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
+
+  const goToPrevMonth = () => {
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+      setSelectedYear((y) => y - 1);
+    } else {
+      setSelectedMonth((m) => m - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (isCurrentMonth) return;
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+      setSelectedYear((y) => y + 1);
+    } else {
+      setSelectedMonth((m) => m + 1);
+    }
+  };
+
+  // CardDescription text
+  const cardDescription = showAllMonths
+    ? `Semua data: ${totalDistribusi} distribusi tercatat`
+    : `Bulan ${monthLabel}: ${totalDistribusi} distribusi tercatat`;
 
   const resetForm = () => {
     setFormData({
@@ -403,7 +467,10 @@ export default function DistribusiPage() {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogTrigger asChild>
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700"
+              data-ocid="distribusi.add_button"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Catat Distribusi
             </Button>
@@ -631,11 +698,92 @@ export default function DistribusiPage() {
       <Card>
         <CardHeader>
           <CardTitle>Daftar Distribusi</CardTitle>
-          <CardDescription>
-            Total: {distribusiList.length} distribusi tercatat
-          </CardDescription>
+          <CardDescription>{cardDescription}</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Month Navigator */}
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-emerald-700 hover:bg-emerald-100"
+              onClick={goToPrevMonth}
+              disabled={showAllMonths}
+              data-ocid="distribusi.pagination_prev"
+              title="Bulan sebelumnya"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <div className="flex flex-1 items-center justify-center gap-2">
+              <span
+                className={
+                  showAllMonths
+                    ? "text-sm font-medium text-muted-foreground"
+                    : "text-sm font-semibold capitalize text-emerald-800"
+                }
+              >
+                {showAllMonths ? "Semua Bulan" : monthLabel}
+              </span>
+              {!showAllMonths && isCurrentMonth && (
+                <span className="rounded-full bg-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                  Bulan Ini
+                </span>
+              )}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 text-emerald-700 hover:bg-emerald-100"
+              onClick={goToNextMonth}
+              disabled={showAllMonths || isCurrentMonth}
+              data-ocid="distribusi.pagination_next"
+              title="Bulan berikutnya"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+
+            <Button
+              variant={showAllMonths ? "default" : "outline"}
+              size="sm"
+              className={
+                showAllMonths
+                  ? "ml-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                  : "ml-2 border-emerald-300 text-emerald-700 hover:bg-emerald-100"
+              }
+              onClick={() => setShowAllMonths((v) => !v)}
+              data-ocid="distribusi.toggle"
+            >
+              Semua Bulan
+            </Button>
+          </div>
+
+          {/* Stats Summary */}
+          <div className="mb-4 grid grid-cols-3 gap-3">
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-700">
+                {totalDistribusi}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600">
+                Total Distribusi
+              </p>
+            </div>
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-700">
+                {uniquePenerima}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600">Penerima Unik</p>
+            </div>
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-3 text-center">
+              <p className="text-2xl font-bold text-emerald-700">
+                {totalPaket}
+              </p>
+              <p className="mt-0.5 text-xs text-emerald-600">Total Paket</p>
+            </div>
+          </div>
+
+          {/* Search */}
           <div className="mb-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -663,7 +811,9 @@ export default function DistribusiPage() {
             >
               {searchTerm
                 ? "Tidak ada data yang sesuai dengan pencarian"
-                : "Belum ada data distribusi"}
+                : showAllMonths
+                  ? "Belum ada data distribusi"
+                  : `Belum ada data distribusi untuk ${monthLabel}`}
             </div>
           ) : (
             <div className="overflow-x-auto">

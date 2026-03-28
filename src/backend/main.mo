@@ -25,7 +25,7 @@ actor {
   let sasaranStore = Map.empty<Nat, Sasaran.SasaranRecord>();
   let paketStore = Map.empty<Nat, PaketMBG.PaketMBGRecord>();
   let distribusiStore = Map.empty<Nat, Distribusi.DistribusiRecord>();
-  var nextId = Map.empty<Text, Nat>();
+  let nextId = Map.empty<Text, Nat>();
   let userProfiles = Map.empty<Principal, UserProfile>();
 
   // ================= Helper Functions =================
