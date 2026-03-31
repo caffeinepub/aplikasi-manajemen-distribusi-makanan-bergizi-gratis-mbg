@@ -1,24 +1,21 @@
-# Aplikasi Manajemen Distribusi Makanan Bergizi Gratis (MBG)
+# Aplikasi Manajemen Distribusi MBG
 
 ## Current State
-Aplikasi sudah memiliki fitur catat distribusi batched dengan checklist penerima per desa. Tabel distribusi menampilkan data yang sudah dicatat. Belum ada fitur edit data distribusi yang sudah tersimpan.
+App deployed with backend canister. Data lost on redeploy because canister is replaced. Backend mutations reject anonymous callers.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Fungsi backend `editDistribusi` untuk mengubah data distribusi yang sudah ada (tanggal, paket, jumlah, status, keterangan)
-- Tombol Edit di setiap baris tabel distribusi
-- Dialog edit distribusi dengan form pre-filled data yang ada
-- Hook `useEditDistribusi` untuk memanggil API edit
+- localStorage-based data persistence layer
 
 ### Modify
-- `DistribusiPage.tsx`: tambah kolom Aksi di tabel, tambah dialog edit
-- `main.mo`: tambah fungsi `editDistribusi`
+- Replace canister calls with localStorage operations for all data CRUD
+- Keep all v13 features: checklist, edit, monthly filter, PDF, rekapan
 
 ### Remove
-- Tidak ada yang dihapus
+- Backend dependency for data storage
 
 ## Implementation Plan
-1. Tambah fungsi `editDistribusi` di `main.mo` yang menerima id dan field-field yang dapat diubah
-2. Tambah hook `useEditDistribusi` di `useQueries.ts`
-3. Update `DistribusiPage.tsx` dengan tombol edit, state edit, dan dialog edit
+1. Create localStore.ts utility for sasaran, paket, distribusi
+2. Update all pages to use localStore
+3. Validate and deploy

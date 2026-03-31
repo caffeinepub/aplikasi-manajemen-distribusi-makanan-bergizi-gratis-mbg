@@ -178,7 +178,7 @@ actor {
     };
   };
 
-  // ================= Sasaran Operations (Authenticated Users Only) =====================
+  // ================= Sasaran Operations =====================
   public shared ({ caller }) func tambahSasaran(nama : Text, alamat : Text, nomorIdentitas : Text, catatan : ?Text, kategori : ?Sasaran.Kategori) : async Sasaran.SasaranRecord {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can add sasaran");
@@ -200,24 +200,15 @@ actor {
     sasaran;
   };
 
-  public query ({ caller }) func getSasaran(_id : Nat) : async ?Sasaran.SasaranRecord {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view sasaran");
-    };
+  public query func getSasaran(_id : Nat) : async ?Sasaran.SasaranRecord {
     sasaranStore.get(_id);
   };
 
-  public query ({ caller }) func getSemuaSasaran() : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view sasaran");
-    };
+  public query func getSemuaSasaran() : async [Sasaran.SasaranRecord] {
     sasaranStore.values().toArray();
   };
 
-  public query ({ caller }) func filterSasaranByStatus(aktif : Bool) : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can filter sasaran");
-    };
+  public query func filterSasaranByStatus(aktif : Bool) : async [Sasaran.SasaranRecord] {
     let filtered = sasaranStore.values().toArray().filter(
       func(s) {
         switch (s.status, aktif) {
@@ -230,20 +221,14 @@ actor {
     filtered;
   };
 
-  public query ({ caller }) func cariSasaranByNama(nama : Text) : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can search sasaran");
-    };
+  public query func cariSasaranByNama(nama : Text) : async [Sasaran.SasaranRecord] {
     let results = sasaranStore.values().toArray().filter(
       func(s) { s.nama.contains(#text nama) }
     );
     results;
   };
 
-  public query ({ caller }) func filterSasaranByKategori(kategori : Sasaran.Kategori) : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can filter sasaran by kategori");
-    };
+  public query func filterSasaranByKategori(kategori : Sasaran.Kategori) : async [Sasaran.SasaranRecord] {
     let results = sasaranStore.values().toArray().filter(
       func(s) { s.kategori == kategori }
     );
@@ -267,7 +252,7 @@ actor {
     };
   };
 
-  // ================= Paket Operations (Authenticated Users Only) =====================
+  // ================= Paket Operations =====================
   public shared ({ caller }) func tambahPaket(jenis : PaketMBG.Jenis, nama : Text, keterangan : ?Text) : async PaketMBG.PaketMBGRecord {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can add paket");
@@ -283,21 +268,15 @@ actor {
     paket;
   };
 
-  public query ({ caller }) func getPaket(_id : Nat) : async ?PaketMBG.PaketMBGRecord {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view paket");
-    };
+  public query func getPaket(_id : Nat) : async ?PaketMBG.PaketMBGRecord {
     paketStore.get(_id);
   };
 
-  public query ({ caller }) func getSemuaPaket() : async [PaketMBG.PaketMBGRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view paket");
-    };
+  public query func getSemuaPaket() : async [PaketMBG.PaketMBGRecord] {
     paketStore.values().toArray();
   };
 
-  // ================= Distribusi Operations (Authenticated Users Only) =====================
+  // ================= Distribusi Operations =====================
   public shared ({ caller }) func catatDistribusiBatched(pending : BatchedDistribusi.PendingBatchedDistribusi) : async BatchedDistribusi.BatchedDistribusiResult {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only authenticated users can record distribusi");
@@ -392,68 +371,47 @@ actor {
   };
 
   // ================= Queries: Distribusi =====================
-  public query ({ caller }) func getDistribusi(_id : Nat) : async ?Distribusi.DistribusiRecord {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getDistribusi(_id : Nat) : async ?Distribusi.DistribusiRecord {
     distribusiStore.get(_id);
   };
 
-  public query ({ caller }) func getSemuaDistribusi() : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getSemuaDistribusi() : async [Distribusi.DistribusiRecord] {
     distribusiStore.values().toArray();
   };
 
-  public query ({ caller }) func getDistribusiBySasaran(idSasaran : Nat) : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getDistribusiBySasaran(idSasaran : Nat) : async [Distribusi.DistribusiRecord] {
     let filtered = distribusiStore.values().toArray().filter(
       func(d) { d.idSasaran == idSasaran }
     );
     filtered;
   };
 
-  public query ({ caller }) func getDistribusiByPaket(idPaket : Nat) : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getDistribusiByPaket(idPaket : Nat) : async [Distribusi.DistribusiRecord] {
     let filtered = distribusiStore.values().toArray().filter(
       func(d) { d.idPaket == idPaket }
     );
     filtered;
   };
 
-  public query ({ caller }) func getDistribusiByStatus(status : Distribusi.DistribusiStatus) : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getDistribusiByStatus(status : Distribusi.DistribusiStatus) : async [Distribusi.DistribusiRecord] {
     let filtered = distribusiStore.values().toArray().filter(
       func(d) { d.statusDistribusi == status }
     );
     filtered;
   };
 
-  public query ({ caller }) func filterDistribusiByTanggal(start : Time.Time, end : Time.Time) : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can filter distribusi");
-    };
+  public query func filterDistribusiByTanggal(start : Time.Time, end : Time.Time) : async [Distribusi.DistribusiRecord] {
     distribusiStore.values().toArray().filter(
       func(d) { d.tanggalDistribusi >= start and d.tanggalDistribusi <= end }
     );
   };
 
   // ================= Report Queries =====================
-  public query ({ caller }) func getDataUntukLaporan(start : Time.Time, end : Time.Time) : async {
+  public query func getDataUntukLaporan(start : Time.Time, end : Time.Time) : async {
     sasaran : [Sasaran.SasaranRecord];
     paket : [PaketMBG.PaketMBGRecord];
     distribusi : [Distribusi.DistribusiRecord];
   } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can generate reports");
-    };
     let filteredDistribusi = distribusiStore.values().toArray().filter(
       func(d) { d.tanggalDistribusi >= start and d.tanggalDistribusi <= end }
     );
@@ -465,14 +423,11 @@ actor {
     };
   };
 
-  public query ({ caller }) func getLaporanByKategori(kategori : Sasaran.Kategori, start : Time.Time, end : Time.Time) : async {
+  public query func getLaporanByKategori(kategori : Sasaran.Kategori, start : Time.Time, end : Time.Time) : async {
     sasaran : [Sasaran.SasaranRecord];
     paket : [PaketMBG.PaketMBGRecord];
     distribusi : [Distribusi.DistribusiRecord];
   } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can generate reports by kategori");
-    };
     let distribusiInRange = distribusiStore.values().toArray().filter(
       func(d) { d.tanggalDistribusi >= start and d.tanggalDistribusi <= end }
     );
@@ -497,10 +452,7 @@ actor {
     };
   };
 
-  public query ({ caller }) func getStatistikDistribusi() : async { totalSasaran : Nat; totalPaket : Nat; totalDistribusi : Nat } {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view statistics");
-    };
+  public query func getStatistikDistribusi() : async { totalSasaran : Nat; totalPaket : Nat; totalDistribusi : Nat } {
     {
       totalSasaran = sasaranStore.size();
       totalPaket = paketStore.size();
@@ -509,45 +461,27 @@ actor {
   };
 
   // ================= Sorting Support for Frontend =====================
-  public query ({ caller }) func getSemuaSasaranSortedByNama() : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view sasaran");
-    };
+  public query func getSemuaSasaranSortedByNama() : async [Sasaran.SasaranRecord] {
     sasaranStore.values().toArray().sort(Sasaran.compareByNama);
   };
 
-  public query ({ caller }) func getSemuaSasaranSortedById() : async [Sasaran.SasaranRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view sasaran");
-    };
+  public query func getSemuaSasaranSortedById() : async [Sasaran.SasaranRecord] {
     sasaranStore.values().toArray().sort(Sasaran.compareById);
   };
 
-  public query ({ caller }) func getSemuaPaketSortedByNama() : async [PaketMBG.PaketMBGRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view paket");
-    };
+  public query func getSemuaPaketSortedByNama() : async [PaketMBG.PaketMBGRecord] {
     paketStore.values().toArray().sort(PaketMBG.compareByNama);
   };
 
-  public query ({ caller }) func getSemuaPaketSortedById() : async [PaketMBG.PaketMBGRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view paket");
-    };
+  public query func getSemuaPaketSortedById() : async [PaketMBG.PaketMBGRecord] {
     paketStore.values().toArray().sort(PaketMBG.compareById);
   };
 
-  public query ({ caller }) func getSemuaDistribusiSortedByTanggal() : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getSemuaDistribusiSortedByTanggal() : async [Distribusi.DistribusiRecord] {
     distribusiStore.values().toArray().sort(Distribusi.compareByTanggal);
   };
 
-  public query ({ caller }) func getSemuaDistribusiSortedById() : async [Distribusi.DistribusiRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can view distribusi");
-    };
+  public query func getSemuaDistribusiSortedById() : async [Distribusi.DistribusiRecord] {
     distribusiStore.values().toArray().sort(Distribusi.compareById);
   };
 };
