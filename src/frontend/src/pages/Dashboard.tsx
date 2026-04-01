@@ -7,6 +7,7 @@ import LaporanPage from "../components/LaporanPage";
 import PaketPage from "../components/PaketPage";
 import SasaranPage from "../components/SasaranPage";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { useMigrateFromBackend } from "../hooks/useMigrateFromBackend";
 
 export type MenuType = "home" | "sasaran" | "paket" | "distribusi" | "laporan";
 
@@ -14,6 +15,7 @@ export default function Dashboard() {
   const [activeMenu, setActiveMenu] = useState<MenuType>("home");
   const { clear, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+  useMigrateFromBackend();
 
   const handleLogout = async () => {
     await clear();
