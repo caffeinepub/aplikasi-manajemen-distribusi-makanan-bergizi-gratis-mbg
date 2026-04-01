@@ -12,7 +12,7 @@ import { useMigrateFromBackend } from "../hooks/useMigrateFromBackend";
 export type MenuType = "home" | "sasaran" | "paket" | "distribusi" | "laporan";
 
 export default function Dashboard() {
-  const [activeMenu, setActiveMenu] = useState<MenuType>("home");
+  const [activeMenu, setActiveMenu] = useState<MenuType>("sasaran");
   const { clear, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
   useMigrateFromBackend();
