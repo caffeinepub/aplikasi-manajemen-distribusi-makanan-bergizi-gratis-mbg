@@ -331,11 +331,14 @@ export default function DistribusiPage() {
     useState<BatchedDistribusiResult | null>(null);
   const [editTarget, setEditTarget] = useState<DistribusiRecord | null>(null);
 
-  // Month filter state
+  // Month filter state — default to previous month
   const now = new Date();
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth());
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [showAllMonths, setShowAllMonths] = useState(true);
+  const prevMonth = now.getMonth() === 0 ? 11 : now.getMonth() - 1;
+  const prevYear =
+    now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+  const [selectedMonth, setSelectedMonth] = useState(prevMonth);
+  const [selectedYear, setSelectedYear] = useState(prevYear);
+  const [showAllMonths, setShowAllMonths] = useState(false);
 
   const [formData, setFormData] = useState({
     selectedSasaranIds: [] as bigint[],
@@ -384,6 +387,7 @@ export default function DistribusiPage() {
     year: "numeric",
   });
 
+  // isCurrentMonth compares against today's actual month/year
   const isCurrentMonth =
     selectedMonth === now.getMonth() && selectedYear === now.getFullYear();
 
