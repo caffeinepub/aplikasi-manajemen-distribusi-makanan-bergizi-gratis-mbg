@@ -1,0 +1,142 @@
+type UserRole = 
+ variant {
+   admin;
+   guest;
+   user;
+ };
+type UserProfile = 
+ record {
+   email: opt text;
+   name: text;
+   role: text;
+ };
+type Time = int;
+type Status = 
+ variant {
+   aktif;
+   nonAktif;
+ };
+type SasaranRecord = 
+ record {
+   alamat: text;
+   catatan: opt text;
+   id: nat;
+   kategori: Kategori;
+   nama: text;
+   nomorIdentitas: text;
+   status: Status;
+ };
+type PendingBatchedDistribusi = 
+ record {
+   idPaket: nat;
+   jumlahPaket: nat;
+   keterangan: opt text;
+   sasaranIds: vec nat;
+   statusDistribusi: DistribusiStatus;
+   tanggalDistribusi: Time;
+ };
+type PaketMBGRecord = 
+ record {
+   id: nat;
+   jenis: Jenis;
+   keterangan: opt text;
+   nama: text;
+ };
+type Kategori = 
+ variant {
+   balita;
+   ibuHamil;
+   ibuMenyusui;
+   tidakDitentukan;
+ };
+type Jenis = 
+ variant {
+   lainnya: text;
+   makananSiapSaji;
+   multivitamin;
+   paketSembako;
+   susuTambahan;
+ };
+type DistribusiStatus = 
+ variant {
+   dalamProses;
+   pending;
+   terdistribusi;
+   tidakTerkirim;
+ };
+type DistribusiRecord = 
+ record {
+   id: nat;
+   idPaket: nat;
+   idSasaran: nat;
+   jumlahPaket: nat;
+   keterangan: opt text;
+   statusDistribusi: DistribusiStatus;
+   tanggalDistribusi: Time;
+ };
+type BatchedDistribusiResult = 
+ record {
+   gagal: vec record {
+                error: text;
+                sasaranId: nat;
+              };
+   sukses: vec DistribusiRecord;
+ };
+service : {
+  _initializeAccessControl: () -> ();
+  assignCallerUserRole: (user: principal, role: UserRole) -> ();
+  cariSasaranByNama: (nama: text) -> (vec SasaranRecord) query;
+  catatDistribusiBatched: (pending: PendingBatchedDistribusi) ->
+   (BatchedDistribusiResult);
+  editDistribusi: (id: nat, idPaket: nat, jumlahPaket: nat,
+   tanggalDistribusi: Time, statusDistribusi: DistribusiStatus, keterangan:
+   opt text) -> (DistribusiRecord);
+  filterDistribusiByTanggal: (start: Time, end: Time) ->
+   (vec DistribusiRecord) query;
+  filterSasaranByKategori: (kategori: Kategori) -> (vec SasaranRecord) query;
+  filterSasaranByStatus: (aktif: bool) -> (vec SasaranRecord) query;
+  getCallerUserProfile: () -> (opt UserProfile) query;
+  getCallerUserRole: () -> (UserRole) query;
+  getDataUntukLaporan: (start: Time, end: Time) ->
+   (record {
+      distribusi: vec DistribusiRecord;
+      paket: vec PaketMBGRecord;
+      sasaran: vec SasaranRecord;
+    }) query;
+  getDistribusi: (_id: nat) -> (opt DistribusiRecord) query;
+  getDistribusiByPaket: (idPaket: nat) -> (vec DistribusiRecord) query;
+  getDistribusiBySasaran: (idSasaran: nat) -> (vec DistribusiRecord) query;
+  getDistribusiByStatus: (status: DistribusiStatus) ->
+   (vec DistribusiRecord) query;
+  getLaporanByKategori: (kategori: Kategori, start: Time, end: Time) ->
+   (record {
+      distribusi: vec DistribusiRecord;
+      paket: vec PaketMBGRecord;
+      sasaran: vec SasaranRecord;
+    }) query;
+  getPaket: (_id: nat) -> (opt PaketMBGRecord) query;
+  getSasaran: (_id: nat) -> (opt SasaranRecord) query;
+  getSemuaDistribusi: () -> (vec DistribusiRecord) query;
+  getSemuaDistribusiSortedById: () -> (vec DistribusiRecord) query;
+  getSemuaDistribusiSortedByTanggal: () -> (vec DistribusiRecord) query;
+  getSemuaPaket: () -> (vec PaketMBGRecord) query;
+  getSemuaPaketSortedById: () -> (vec PaketMBGRecord) query;
+  getSemuaPaketSortedByNama: () -> (vec PaketMBGRecord) query;
+  getSemuaSasaran: () -> (vec SasaranRecord) query;
+  getSemuaSasaranSortedById: () -> (vec SasaranRecord) query;
+  getSemuaSasaranSortedByNama: () -> (vec SasaranRecord) query;
+  getStatistikDistribusi: () ->
+   (record {
+      totalDistribusi: nat;
+      totalPaket: nat;
+      totalSasaran: nat;
+    }) query;
+  getUserProfile: (user: principal) -> (opt UserProfile) query;
+  isCallerAdmin: () -> (bool) query;
+  saveCallerUserProfile: (profile: UserProfile) -> ();
+  tambahPaket: (jenis: Jenis, nama: text, keterangan: opt text) ->
+   (PaketMBGRecord);
+  tambahSasaran: (nama: text, alamat: text, nomorIdentitas: text, catatan:
+   opt text, kategori: opt Kategori) -> (SasaranRecord);
+  ubahStatusSasaran: (id: nat, aktif: bool) -> ();
+}

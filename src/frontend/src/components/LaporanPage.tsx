@@ -19,9 +19,9 @@ import {
 import { AlertCircle, Calendar, FileDown, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { Kategori } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useGetSemuaPaket, useGetSemuaSasaran } from "../hooks/useQueries";
+import type { Kategori } from "../types/mbg";
 
 export default function LaporanPage() {
   const { actor } = useActor();

@@ -49,12 +49,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DistribusiStatus } from "../backend";
-import type {
-  BatchedDistribusiResult,
-  DistribusiRecord,
-  Jenis,
-} from "../backend";
 import {
   useCatatDistribusiBatched,
   useEditDistribusi,
@@ -62,6 +56,12 @@ import {
   useGetSemuaPaket,
   useGetSemuaSasaran,
 } from "../hooks/useQueries";
+import { DistribusiStatus } from "../types/mbg";
+import type {
+  BatchedDistribusiResult,
+  DistribusiRecord,
+  Jenis,
+} from "../types/mbg";
 import BeneficiaryChecklistSelector from "./BeneficiaryChecklistSelector";
 
 function getJenisLabel(jenis: Jenis): string {
@@ -318,7 +318,11 @@ function EditDistribusiDialog({
 }
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function DistribusiPage() {
+interface DistribusiPageProps {
+  isAdmin: boolean;
+}
+
+export default function DistribusiPage({ isAdmin }: DistribusiPageProps) {
   const { data: distribusiList = [], isLoading } = useGetSemuaDistribusi();
   const { data: sasaranList = [] } = useGetSemuaSasaran();
   const { data: paketList = [] } = useGetSemuaPaket();
@@ -469,233 +473,239 @@ export default function DistribusiPage() {
             Catat dan pantau distribusi paket MBG
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-          <DialogTrigger asChild>
-            <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
-              data-ocid="distribusi.add_button"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Catat Distribusi
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Catat Distribusi Baru</DialogTitle>
-              <DialogDescription>
-                Pilih penerima manfaat per desa, lalu isi detail distribusi
-                paket MBG
-              </DialogDescription>
-            </DialogHeader>
+        {isAdmin && (
+          <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+            <DialogTrigger asChild>
+              <Button
+                className="bg-emerald-600 hover:bg-emerald-700"
+                data-ocid="distribusi.add_button"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Catat Distribusi
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Catat Distribusi Baru</DialogTitle>
+                <DialogDescription>
+                  Pilih penerima manfaat per desa, lalu isi detail distribusi
+                  paket MBG
+                </DialogDescription>
+              </DialogHeader>
 
-            <ScrollArea className="max-h-[75vh] pr-1">
-              {batchResult && (
-                <div className="mb-4 space-y-2">
-                  {batchResult.sukses.length > 0 && (
-                    <Alert className="border-emerald-200 bg-emerald-50">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                      <AlertTitle className="text-emerald-800">
-                        {batchResult.sukses.length} distribusi berhasil dicatat
-                      </AlertTitle>
-                      <AlertDescription className="text-emerald-700">
-                        Data distribusi telah tersimpan untuk{" "}
-                        {batchResult.sukses.length} penerima manfaat.
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {batchResult.gagal.length > 0 && (
-                    <Alert variant="destructive">
-                      <XCircle className="h-4 w-4" />
-                      <AlertTitle>
-                        {batchResult.gagal.length} distribusi gagal
-                      </AlertTitle>
-                      <AlertDescription>
-                        <ul className="mt-1 list-disc pl-4 text-sm">
-                          {batchResult.gagal.map((f) => (
-                            <li key={f.sasaranId.toString()}>
-                              ID Sasaran {f.sasaranId.toString()}: {f.error}
-                            </li>
+              <ScrollArea className="max-h-[75vh] pr-1">
+                {batchResult && (
+                  <div className="mb-4 space-y-2">
+                    {batchResult.sukses.length > 0 && (
+                      <Alert className="border-emerald-200 bg-emerald-50">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                        <AlertTitle className="text-emerald-800">
+                          {batchResult.sukses.length} distribusi berhasil
+                          dicatat
+                        </AlertTitle>
+                        <AlertDescription className="text-emerald-700">
+                          Data distribusi telah tersimpan untuk{" "}
+                          {batchResult.sukses.length} penerima manfaat.
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    {batchResult.gagal.length > 0 && (
+                      <Alert variant="destructive">
+                        <XCircle className="h-4 w-4" />
+                        <AlertTitle>
+                          {batchResult.gagal.length} distribusi gagal
+                        </AlertTitle>
+                        <AlertDescription>
+                          <ul className="mt-1 list-disc pl-4 text-sm">
+                            {batchResult.gagal.map((f) => (
+                              <li key={f.sasaranId.toString()}>
+                                ID Sasaran {f.sasaranId.toString()}: {f.error}
+                              </li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setBatchResult(null);
+                        handleDialogOpenChange(false);
+                      }}
+                    >
+                      Tutup
+                    </Button>
+                  </div>
+                )}
+
+                {!batchResult && (
+                  <form onSubmit={handleSubmit} className="space-y-5 pb-2">
+                    <div className="space-y-2">
+                      <Label>
+                        Penerima Manfaat *{" "}
+                        <span className="text-xs font-normal text-muted-foreground">
+                          (pilih satu atau lebih per desa)
+                        </span>
+                      </Label>
+                      <BeneficiaryChecklistSelector
+                        sasaranList={sasaranList}
+                        selectedIds={formData.selectedSasaranIds}
+                        onChange={(ids) =>
+                          setFormData({ ...formData, selectedSasaranIds: ids })
+                        }
+                        disabled={isAdding}
+                      />
+                      {formData.selectedSasaranIds.length === 0 && (
+                        <p className="text-xs text-destructive">
+                          Pilih minimal satu penerima manfaat
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="idPaket">Paket MBG *</Label>
+                      <Select
+                        value={formData.idPaket}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, idPaket: value })
+                        }
+                        disabled={isAdding}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih paket" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {paketList.map((paket) => (
+                            <SelectItem
+                              key={paket.id.toString()}
+                              value={paket.id.toString()}
+                            >
+                              {paket.nama} ({getJenisLabel(paket.jenis)})
+                            </SelectItem>
                           ))}
-                        </ul>
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setBatchResult(null);
-                      handleDialogOpenChange(false);
-                    }}
-                  >
-                    Tutup
-                  </Button>
-                </div>
-              )}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-              {!batchResult && (
-                <form onSubmit={handleSubmit} className="space-y-5 pb-2">
-                  <div className="space-y-2">
-                    <Label>
-                      Penerima Manfaat *{" "}
-                      <span className="text-xs font-normal text-muted-foreground">
-                        (pilih satu atau lebih per desa)
-                      </span>
-                    </Label>
-                    <BeneficiaryChecklistSelector
-                      sasaranList={sasaranList}
-                      selectedIds={formData.selectedSasaranIds}
-                      onChange={(ids) =>
-                        setFormData({ ...formData, selectedSasaranIds: ids })
-                      }
-                      disabled={isAdding}
-                    />
-                    {formData.selectedSasaranIds.length === 0 && (
-                      <p className="text-xs text-destructive">
-                        Pilih minimal satu penerima manfaat
-                      </p>
-                    )}
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="jumlahPaket">Jumlah Paket *</Label>
+                      <Input
+                        id="jumlahPaket"
+                        type="number"
+                        min="1"
+                        value={formData.jumlahPaket}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            jumlahPaket: e.target.value,
+                          })
+                        }
+                        required
+                        disabled={isAdding}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="idPaket">Paket MBG *</Label>
-                    <Select
-                      value={formData.idPaket}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, idPaket: value })
-                      }
-                      disabled={isAdding}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih paket" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {paketList.map((paket) => (
-                          <SelectItem
-                            key={paket.id.toString()}
-                            value={paket.id.toString()}
-                          >
-                            {paket.nama} ({getJenisLabel(paket.jenis)})
+                    <div className="space-y-2">
+                      <Label htmlFor="tanggalDistribusi">
+                        Tanggal Distribusi *
+                      </Label>
+                      <Input
+                        id="tanggalDistribusi"
+                        type="date"
+                        value={formData.tanggalDistribusi}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            tanggalDistribusi: e.target.value,
+                          })
+                        }
+                        required
+                        disabled={isAdding}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="statusDistribusi">
+                        Status Distribusi *
+                      </Label>
+                      <Select
+                        value={formData.statusDistribusi}
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            statusDistribusi: value as DistribusiStatus,
+                          })
+                        }
+                        disabled={isAdding}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={DistribusiStatus.terdistribusi}>
+                            Terdistribusi
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                          <SelectItem value={DistribusiStatus.pending}>
+                            Pending
+                          </SelectItem>
+                          <SelectItem value={DistribusiStatus.dalamProses}>
+                            Dalam Proses
+                          </SelectItem>
+                          <SelectItem value={DistribusiStatus.tidakTerkirim}>
+                            Tidak Terkirim
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="jumlahPaket">Jumlah Paket *</Label>
-                    <Input
-                      id="jumlahPaket"
-                      type="number"
-                      min="1"
-                      value={formData.jumlahPaket}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          jumlahPaket: e.target.value,
-                        })
-                      }
-                      required
-                      disabled={isAdding}
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="keterangan">Keterangan (Opsional)</Label>
+                      <Textarea
+                        id="keterangan"
+                        value={formData.keterangan}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            keterangan: e.target.value,
+                          })
+                        }
+                        disabled={isAdding}
+                        rows={2}
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="tanggalDistribusi">
-                      Tanggal Distribusi *
-                    </Label>
-                    <Input
-                      id="tanggalDistribusi"
-                      type="date"
-                      value={formData.tanggalDistribusi}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          tanggalDistribusi: e.target.value,
-                        })
+                    <Button
+                      type="submit"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      disabled={
+                        isAdding ||
+                        formData.selectedSasaranIds.length === 0 ||
+                        !formData.idPaket ||
+                        !formData.jumlahPaket
                       }
-                      required
-                      disabled={isAdding}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="statusDistribusi">
-                      Status Distribusi *
-                    </Label>
-                    <Select
-                      value={formData.statusDistribusi}
-                      onValueChange={(value) =>
-                        setFormData({
-                          ...formData,
-                          statusDistribusi: value as DistribusiStatus,
-                        })
-                      }
-                      disabled={isAdding}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Pilih status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={DistribusiStatus.terdistribusi}>
-                          Terdistribusi
-                        </SelectItem>
-                        <SelectItem value={DistribusiStatus.pending}>
-                          Pending
-                        </SelectItem>
-                        <SelectItem value={DistribusiStatus.dalamProses}>
-                          Dalam Proses
-                        </SelectItem>
-                        <SelectItem value={DistribusiStatus.tidakTerkirim}>
-                          Tidak Terkirim
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="keterangan">Keterangan (Opsional)</Label>
-                    <Textarea
-                      id="keterangan"
-                      value={formData.keterangan}
-                      onChange={(e) =>
-                        setFormData({ ...formData, keterangan: e.target.value })
-                      }
-                      disabled={isAdding}
-                      rows={2}
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    disabled={
-                      isAdding ||
-                      formData.selectedSasaranIds.length === 0 ||
-                      !formData.idPaket ||
-                      !formData.jumlahPaket
-                    }
-                  >
-                    {isAdding ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Menyimpan {formData.selectedSasaranIds.length} data...
-                      </>
-                    ) : (
-                      <>
-                        Simpan{" "}
-                        {formData.selectedSasaranIds.length > 0
-                          ? `(${formData.selectedSasaranIds.length} penerima)`
-                          : "Data"}
-                      </>
-                    )}
-                  </Button>
-                </form>
-              )}
-            </ScrollArea>
-          </DialogContent>
-        </Dialog>
+                      {isAdding ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Menyimpan {formData.selectedSasaranIds.length} data...
+                        </>
+                      ) : (
+                        <>
+                          Simpan{" "}
+                          {formData.selectedSasaranIds.length > 0
+                            ? `(${formData.selectedSasaranIds.length} penerima)`
+                            : "Data"}
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                )}
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Distribution list table */}
@@ -832,7 +842,9 @@ export default function DistribusiPage() {
                     <TableHead>Jumlah</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Keterangan</TableHead>
-                    <TableHead className="text-center">Aksi</TableHead>
+                    {isAdmin && (
+                      <TableHead className="text-center">Aksi</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -881,16 +893,18 @@ export default function DistribusiPage() {
                           {distribusi.keterangan || "-"}
                         </TableCell>
                         <TableCell className="text-center">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 w-8 p-0 hover:border-emerald-500 hover:text-emerald-600"
-                            onClick={() => setEditTarget(distribusi)}
-                            data-ocid={`distribusi.edit_button.${rowNum}`}
-                            title="Edit distribusi"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </Button>
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 w-8 p-0 hover:border-emerald-500 hover:text-emerald-600"
+                              onClick={() => setEditTarget(distribusi)}
+                              data-ocid={`distribusi.edit_button.${rowNum}`}
+                              title="Edit distribusi"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     );

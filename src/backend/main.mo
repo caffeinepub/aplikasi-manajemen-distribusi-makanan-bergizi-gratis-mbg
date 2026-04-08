@@ -9,15 +9,12 @@ import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Iter "mo:core/Iter";
 
-import MixinAuthorization "authorization/MixinAuthorization";
-import MixinStorage "blob-storage/Mixin";
-import AccessControl "authorization/access-control";
+import MixinAuthorization "mo:caffeineai-authorization/MixinAuthorization";
+import AccessControl "mo:caffeineai-authorization/access-control";
 
 // Use stable migration mechanism to preserve persistent data across upgrades. Not needed for var entries but always use it when you persist the data. With persistent data, also aggregation variables must be migrated!
 
 actor {
-  include MixinStorage();
-
   // ================= Persistent State Variables =================
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);

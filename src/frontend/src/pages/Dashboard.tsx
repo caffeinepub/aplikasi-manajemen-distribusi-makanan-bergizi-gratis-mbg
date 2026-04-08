@@ -1,3 +1,4 @@
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import DashboardHome from "../components/DashboardHome";
@@ -6,30 +7,49 @@ import Header from "../components/Header";
 import LaporanPage from "../components/LaporanPage";
 import PaketPage from "../components/PaketPage";
 import SasaranPage from "../components/SasaranPage";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useMigrateFromBackend } from "../hooks/useMigrateFromBackend";
 
 export type MenuType = "home" | "sasaran" | "paket" | "distribusi" | "laporan";
 
 export default function Dashboard() {
   const [activeMenu, setActiveMenu] = useState<MenuType>("sasaran");
-  const { clear, identity } = useInternetIdentity();
+  const { clear, identity, login, isLoggingIn } = useInternetIdentity();
   const queryClient = useQueryClient();
   useMigrateFromBackend();
+
+  const isAdmin = !!identity;
 
   const handleLogout = async () => {
     await clear();
     queryClient.clear();
   };
 
-  const userName = `${identity?.getPrincipal().toString().slice(0, 8)}...`;
+  const handleLogin = async () => {
+    try {
+      await login();
+    } catch (error: unknown) {
+      const err = error as Error;
+      console.error("Login error:", err);
+      if (err.message === "User is already authenticated") {
+        await clear();
+        setTimeout(() => login(), 300);
+      }
+    }
+  };
+
+  const principalShort = identity
+    ? `${identity.getPrincipal().toString().slice(0, 8)}...`
+    : undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
       <Header
         activeMenu={activeMenu}
         setActiveMenu={setActiveMenu}
-        userName={userName}
+        isAdmin={isAdmin}
+        principalShort={principalShort}
+        isLoggingIn={isLoggingIn}
+        onLogin={handleLogin}
         onLogout={handleLogout}
       />
 
@@ -37,9 +57,9 @@ export default function Dashboard() {
         {activeMenu === "home" && (
           <DashboardHome setActiveMenu={setActiveMenu} />
         )}
-        {activeMenu === "sasaran" && <SasaranPage />}
+        {activeMenu === "sasaran" && <SasaranPage isAdmin={isAdmin} />}
         {activeMenu === "paket" && <PaketPage />}
-        {activeMenu === "distribusi" && <DistribusiPage />}
+        {activeMenu === "distribusi" && <DistribusiPage isAdmin={isAdmin} />}
         {activeMenu === "laporan" && <LaporanPage />}
       </main>
 

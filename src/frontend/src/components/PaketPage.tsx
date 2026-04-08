@@ -35,8 +35,8 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Package, Plus, Search } from "lucide-react";
 import { useState } from "react";
-import type { Jenis } from "../backend";
 import { useGetSemuaPaket, useTambahPaket } from "../hooks/useQueries";
+import type { Jenis } from "../types/mbg";
 
 export default function PaketPage() {
   const { data: paketList = [], isLoading } = useGetSemuaPaket();

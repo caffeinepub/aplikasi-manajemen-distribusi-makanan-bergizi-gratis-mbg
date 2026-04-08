@@ -1,0 +1,84 @@
+// Version: 1.0.0
+type Data__791452850<K, V> =
+  {var count : Nat__490723111; kvs : [var ?(K, V)]};
+type DistribusiRecord__780747755 =
+  {
+    id : Nat;
+    idPaket : Nat;
+    idSasaran : Nat;
+    jumlahPaket : Nat;
+    keterangan : ?Text;
+    statusDistribusi : DistribusiStatus__311630075;
+    tanggalDistribusi : Time__900049286
+  };
+type DistribusiStatus__311630075 =
+  {#dalamProses; #pending; #terdistribusi; #tidakTerkirim};
+type Int__270357528 = Int__616954475;
+type Int__616954475 = Int;
+type Internal__8484328<K, V> =
+  {children : [var ?Node__46230540<K, V>]; data : Data__791452850<K, V>};
+type Jenis__268798928 =
+  {
+    #lainnya : Text;
+    #makananSiapSaji;
+    #multivitamin;
+    #paketSembako;
+    #susuTambahan
+  };
+type Kategori__128330608 =
+  {#balita; #ibuHamil; #ibuMenyusui; #tidakDitentukan};
+type Leaf__809889148<K, V> = {data : Data__791452850<K, V>};
+type Map__158565046<K, V> = Map__297112838<K, V>;
+type Map__297112838<K, V> =
+  {var root : Node__46230540<K, V>; var size : Nat__490723111};
+type Map__605269027<K, V> = Map__158565046<K, V>;
+type Nat__490723111 = Nat__920180692;
+type Nat__920180692 = Nat;
+type Node__46230540<K, V> =
+  {#internal : Internal__8484328<K, V>; #leaf : Leaf__809889148<K, V>};
+type PaketMBGRecord__575201509 =
+  {id : Nat; jenis : Jenis__268798928; keterangan : ?Text; nama : Text};
+type SasaranRecord__139903857 =
+  {
+    alamat : Text;
+    catatan : ?Text;
+    id : Nat;
+    kategori : Kategori__128330608;
+    nama : Text;
+    nomorIdentitas : Text;
+    status : Status__1000080315
+  };
+type Status__1000080315 = {#aktif; #nonAktif};
+type Time__796480547 = Int__270357528;
+type Time__900049286 = Time__796480547;
+type UserProfile__491224006 = {email : ?Text; name : Text; role : Text};
+type UserRole__1054455867 = {#admin; #guest; #user};
+actor {
+  stable accessControlState :
+    {
+      var adminAssigned : Bool;
+      userRoles : Map__605269027<Principal, UserRole__1054455867>
+    };
+  stable distribusiStore :
+    {
+      var root : Node__46230540<Nat, DistribusiRecord__780747755>;
+      var size : Nat__490723111
+    };
+  stable nextId :
+    {var root : Node__46230540<Text, Nat>; var size : Nat__490723111};
+  stable paketStore :
+    {
+      var root : Node__46230540<Nat, PaketMBGRecord__575201509>;
+      var size : Nat__490723111
+    };
+  stable sasaranStore :
+    {
+      var root : Node__46230540<Nat, SasaranRecord__139903857>;
+      var size : Nat__490723111
+    };
+  stable userProfiles :
+    {
+      var root : Node__46230540<Principal, UserProfile__491224006>;
+      var size : Nat__490723111
+    }
+};

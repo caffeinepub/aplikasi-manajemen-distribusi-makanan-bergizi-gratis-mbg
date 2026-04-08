@@ -8,7 +8,7 @@ import type {
   PendingBatchedDistribusi,
   SasaranRecord,
   Status,
-} from "../backend";
+} from "../types/mbg";
 
 // ===================== BigInt Serialization =====================
 const replacer = (_: string, v: unknown) =>

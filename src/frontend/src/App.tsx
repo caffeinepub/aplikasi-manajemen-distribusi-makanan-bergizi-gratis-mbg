@@ -1,4 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
 import {
   RouterProvider,
   createRootRoute,
@@ -7,7 +8,6 @@ import {
 } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { ThemeProvider } from "next-themes";
-import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import Dashboard from "./pages/Dashboard";
 
 // Create root route
@@ -30,7 +30,8 @@ function RootComponent() {
     );
   }
 
-  // Always show dashboard - no login required
+  // Always show dashboard — semua pengguna bisa melihat data
+  // Login admin tersedia via tombol di header
   return <Dashboard />;
 }
 

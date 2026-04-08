@@ -6,8 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useInternetIdentity } from "@caffeineai/core-infrastructure";
 import { Loader2, LogIn } from "lucide-react";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 export default function LoginPage() {
   const { login, isLoggingIn } = useInternetIdentity();
@@ -38,7 +38,8 @@ export default function LoginPage() {
           <CardContent className="space-y-4">
             <div className="rounded-lg bg-emerald-50 p-4">
               <p className="text-sm text-emerald-800">
-                Silakan login untuk mengakses sistem manajemen distribusi MBG.
+                Login sebagai Admin untuk mengakses fitur pengelolaan data
+                distribusi MBG.
               </p>
             </div>
             <Button
@@ -46,6 +47,7 @@ export default function LoginPage() {
               disabled={isLoggingIn}
               className="w-full bg-emerald-600 hover:bg-emerald-700"
               size="lg"
+              data-ocid="login-btn"
             >
               {isLoggingIn ? (
                 <>
@@ -55,7 +57,7 @@ export default function LoginPage() {
               ) : (
                 <>
                   <LogIn className="mr-2 h-5 w-5" />
-                  Login dengan Internet Identity
+                  Login sebagai Admin
                 </>
               )}
             </Button>
@@ -64,9 +66,9 @@ export default function LoginPage() {
 
         <footer className="mt-12 text-center text-sm text-muted-foreground">
           <p>
-            © 2025. Dibuat dengan ❤️ menggunakan{" "}
+            © {new Date().getFullYear()}. Dibuat dengan ❤️ menggunakan{" "}
             <a
-              href="https://caffeine.ai"
+              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-emerald-600 hover:underline"

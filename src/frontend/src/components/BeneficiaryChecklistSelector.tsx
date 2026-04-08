@@ -9,8 +9,8 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronDown, ChevronRight, Search, Users, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Status } from "../backend";
-import type { SasaranRecord } from "../backend";
+import { Status } from "../types/mbg";
+import type { SasaranRecord } from "../types/mbg";
 
 interface BeneficiaryChecklistSelectorProps {
   sasaranList: SasaranRecord[];

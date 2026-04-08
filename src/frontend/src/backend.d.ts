@@ -7,21 +7,6 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export type Time = bigint;
-export interface PaketMBGRecord {
-    id: bigint;
-    nama: string;
-    jenis: Jenis;
-    keterangan?: string;
-}
-export interface PendingBatchedDistribusi {
-    idPaket: bigint;
-    sasaranIds: Array<bigint>;
-    keterangan?: string;
-    statusDistribusi: DistribusiStatus;
-    jumlahPaket: bigint;
-    tanggalDistribusi: Time;
-}
 export interface BatchedDistribusiResult {
     gagal: Array<{
         error: string;
@@ -29,6 +14,7 @@ export interface BatchedDistribusiResult {
     }>;
     sukses: Array<DistribusiRecord>;
 }
+export type Time = bigint;
 export interface DistribusiRecord {
     id: bigint;
     idPaket: bigint;
@@ -63,6 +49,20 @@ export interface SasaranRecord {
     kategori: Kategori;
     catatan?: string;
 }
+export interface PaketMBGRecord {
+    id: bigint;
+    nama: string;
+    jenis: Jenis;
+    keterangan?: string;
+}
+export interface PendingBatchedDistribusi {
+    idPaket: bigint;
+    sasaranIds: Array<bigint>;
+    keterangan?: string;
+    statusDistribusi: DistribusiStatus;
+    jumlahPaket: bigint;
+    tanggalDistribusi: Time;
+}
 export interface UserProfile {
     name: string;
     role: string;
@@ -93,6 +93,7 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     cariSasaranByNama(nama: string): Promise<Array<SasaranRecord>>;
     catatDistribusiBatched(pending: PendingBatchedDistribusi): Promise<BatchedDistribusiResult>;
+    editDistribusi(id: bigint, idPaket: bigint, jumlahPaket: bigint, tanggalDistribusi: Time, statusDistribusi: DistribusiStatus, keterangan: string | null): Promise<DistribusiRecord>;
     filterDistribusiByTanggal(start: Time, end: Time): Promise<Array<DistribusiRecord>>;
     filterSasaranByKategori(kategori: Kategori): Promise<Array<SasaranRecord>>;
     filterSasaranByStatus(aktif: boolean): Promise<Array<SasaranRecord>>;

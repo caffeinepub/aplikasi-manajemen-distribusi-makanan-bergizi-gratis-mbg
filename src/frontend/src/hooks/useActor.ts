@@ -1,59 +1,71 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import type { backendInterface } from "../backend";
-import { createActorWithConfig } from "../config";
-import { getSecretParameter } from "../utils/urlParams";
-import { useInternetIdentity } from "./useInternetIdentity";
+// Local actor stub for LaporanPage compatibility
+// Since all data is stored in localStorage, we provide a local implementation
+// of the methods that LaporanPage expects from the backend actor.
 
-const ACTOR_QUERY_KEY = "actor";
-export function useActor() {
-  const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-  const actorQuery = useQuery<backendInterface>({
-    queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
-    queryFn: async () => {
-      const isAuthenticated = !!identity;
+import type { Kategori, LaporanData } from "../types/mbg";
+import * as localStore from "../utils/localStore";
 
-      if (!isAuthenticated) {
-        // Return anonymous actor if not authenticated
-        return await createActorWithConfig();
-      }
+interface LocalActor {
+  getDataUntukLaporan: (
+    startTime: bigint,
+    endTime: bigint,
+  ) => Promise<LaporanData>;
+  getLaporanByKategori: (
+    kategori: Kategori,
+    startTime: bigint,
+    endTime: bigint,
+  ) => Promise<LaporanData>;
+}
 
-      const actorOptions = {
-        agentOptions: {
-          identity,
-        },
-      };
-
-      const actor = await createActorWithConfig(actorOptions);
-      const adminToken = getSecretParameter("caffeineAdminToken") || "";
-      await actor._initializeAccessControlWithSecret(adminToken);
-      return actor;
-    },
-    // Only refetch when identity changes
-    staleTime: Number.POSITIVE_INFINITY,
-    // This will cause the actor to be recreated when the identity changes
-    enabled: true,
-  });
-
-  // When the actor changes, invalidate dependent queries
-  useEffect(() => {
-    if (actorQuery.data) {
-      queryClient.invalidateQueries({
-        predicate: (query) => {
-          return !query.queryKey.includes(ACTOR_QUERY_KEY);
-        },
-      });
-      queryClient.refetchQueries({
-        predicate: (query) => {
-          return !query.queryKey.includes(ACTOR_QUERY_KEY);
-        },
-      });
-    }
-  }, [actorQuery.data, queryClient]);
-
+function createLocalActor(): LocalActor {
   return {
-    actor: actorQuery.data || null,
-    isFetching: actorQuery.isFetching,
+    async getDataUntukLaporan(
+      startTime: bigint,
+      endTime: bigint,
+    ): Promise<LaporanData> {
+      const allDistribusi = localStore.getDistribusiList();
+      const distribusi = allDistribusi.filter(
+        (d) =>
+          d.tanggalDistribusi >= startTime && d.tanggalDistribusi <= endTime,
+      );
+      return {
+        sasaran: localStore.getSasaranList(),
+        paket: localStore.getPaketList(),
+        distribusi,
+      };
+    },
+    async getLaporanByKategori(
+      kategori: Kategori,
+      startTime: bigint,
+      endTime: bigint,
+    ): Promise<LaporanData> {
+      const allDistribusi = localStore.getDistribusiList();
+      const allSasaran = localStore.getSasaranList();
+      const sasaranByKategori = new Set(
+        allSasaran
+          .filter((s) => s.kategori === kategori)
+          .map((s) => s.id.toString()),
+      );
+      const distribusi = allDistribusi.filter(
+        (d) =>
+          d.tanggalDistribusi >= startTime &&
+          d.tanggalDistribusi <= endTime &&
+          sasaranByKategori.has(d.idSasaran.toString()),
+      );
+      return {
+        sasaran: allSasaran,
+        paket: localStore.getPaketList(),
+        distribusi,
+      };
+    },
+  };
+}
+
+const localActor = createLocalActor();
+
+export function useActor() {
+  return {
+    actor: localActor,
+    isFetching: false,
   };
 }

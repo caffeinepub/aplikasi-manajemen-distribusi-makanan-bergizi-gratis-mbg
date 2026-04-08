@@ -8,7 +8,7 @@ import type {
   PaketMBGRecord,
   PendingBatchedDistribusi,
   SasaranRecord,
-} from "../backend";
+} from "../types/mbg";
 import * as localStore from "../utils/localStore";
 
 // ===================== Statistics Queries =====================
